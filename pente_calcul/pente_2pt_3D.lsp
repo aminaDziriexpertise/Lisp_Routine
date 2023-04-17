@@ -1,0 +1,83 @@
+(defun c:PentePoly3D (/ flat sel pl3d elst pt1 pt2 pa1 pa2 deniv comp inc dist)
+  (vl-load-com)
+  (defun flat (p) (list (car p) (cadr p) 0.0))
+  (if
+    (and
+      (setq sel (entsel "\nSélectionnez une polyligne 3D: "))
+      (setq pl3d (car sel))
+      (setq elst (entget pl3d))
+      (= (cdr (assoc 0 elst)) "POLYLINE")
+      (= 8 (logand 8 (cdr (assoc 70 elst))))
+      (setq pt1 (getpoint "\nSpécifiez le premier point: "))
+      (setq pt2 (getpoint "\nSpécifiez le deuxième point: "))
+    )
+     (progn
+       (setq pt1   (vlax-curve-getClosestPointTo pl3d (trans pt1 1 0))
+             pt2   (vlax-curve-getClosestPointTo pl3d (trans pt2 1 0))
+             pa1   (vlax-curve-getParamAtPoint pl3d pt1)
+             pa2   (vlax-curve-getParamAtPoint pl3d pt2)
+             deniv (- (caddr pt2) (caddr pt1))
+       )
+       (if (< pa1 pa2)
+         (setq comp <
+               inc  1+
+               pa1  (1+ (fix pa1))
+         )
+         (setq comp >
+               inc  1-
+               pa1  (fix pa1)
+         )
+       )
+       (setq dist 0.0)
+       (while (comp pa1 pa2)
+         (setq dist (+ dist
+                       (distance (flat pt1) (flat (setq pt1 (vlax-curve-getPointAtParam pl3d pa1))))
+                    )
+               pa1  (inc pa1)
+         )
+       )
+       (setq dist (+ dist (distance (flat pt1) (flat pt2))))
+       (prompt (strcat "\nLongueur plane : "
+                       (rtos dist 2 2)
+                       "\tDenivele = "
+                       (rtos deniv 2 2)
+                       "\tPente : "
+                       (rtos (/ (* 100. deniv) dist) 2 2)
+                       "%"
+               )
+       )
+     )
+  )
+  (princ)
+)
+
+(defun c:pentes ()
+  (setvar "cmdecho" 0)
+  (command "annuler" "m")
+
+ (print)
+ (princ "Extremitees de la pente:")
+ (print)
+ (setq p1 (getpoint "Sélectionnez le premier point :"))
+ (print)
+ (setq p2 (getpoint p1 "Sélectionnez le second point :"))
+ (grdraw p1 p2 1)
+  (setq a1 (car p1))
+  (setq a2 (cadr p1))
+  (setq a3 (caddr p1))
+  (setq b1 (car p2))
+  (setq b2 (cadr p2))
+  (setq b3 (caddr p2))
+  (setq h (- b3 a3))
+  (setq aa (* (- a1 b1) (- a1 b1)))
+  (setq bb (* (- a2 b2) (- a2 b2)))
+  (setq d (sqrt (+ aa bb)))
+  (setq p (/ h d))
+  (setq p (* 100 p))
+  (print)
+  (princ "Pente : ")
+  (princ p)
+  (princ " %")
+  (print)
+)
+

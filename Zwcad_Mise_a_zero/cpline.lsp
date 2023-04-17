@@ -1,0 +1,5 @@
+(defun c:CPL ( / ss)
+  (if (setq ss (ssget '((0 . "LWPOLYLINE") (-4 . "<NOT") (-4 . "&") (70 . 1) (-4 . "NOT>"))))
+    (command "_.PEDIT" "_M" ss "" "_Close" ""))
+  (princ)
+)
